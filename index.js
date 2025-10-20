@@ -9,10 +9,6 @@ app.get('/', (req, res) => {
     res.send('Hello World!'); 
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -26,11 +22,15 @@ db.connect((err) => {
         console.error('Error connecting to the MySQL:' + err.stack);
         return;
     }
+
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
 });
 
 //POST
 app.post('/api/users', (req, res) => {
-    const { nama, nim, kelas, } = req.body;
+    const { nama, nim, kelas } = req.body;
     if (!nama || !nim || !kelas) {
         return res.status(400).json({ message: 'Nama, NIM, dan Kelas harus diisi' });
     }
@@ -50,12 +50,18 @@ app.post('/api/users', (req, res) => {
 app.put('/api/users/:id', (req, res) => {
     const userId = req.params.id;
     const { nama, nim, kelas } = req.body;
+    if (!nama || !nim || !kelas) {
+        return res.status(400).json({ message: 'Nama, NIM, dan Kelas harus diisi' });
+    }
     db.query(
         'UPDATE mahasiswa SET nama = ?, nim = ?, kelas = ? WHERE id = ?', [nama, nim, kelas, userId],
         (err, results) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ message: 'Database Error' });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'User not found' });
             }
             res.json({ message: 'User berhasil diupdate' });
         }
@@ -70,6 +76,9 @@ app.delete('/api/users/:id', (req, res) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ message: 'Database Error' });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'User not found' });
             }
             res.json({ message: 'User berhasil dihapus' });
         });
