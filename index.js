@@ -40,3 +40,15 @@ app.get('/api/users', (req, res) => {
     })
 });
 
+app.post('/api/users', (req, res) => {
+    const { nama, nim, kelas } = req.body;
+    db.query('INSERT INTO mahasiswa (nama, nim, kelas) VALUES (?, ?, ?)', [nama, nim, kelas], (err, results) => {
+        if (err) {
+            console.error('Error inserting user: ' + err.stack);
+            res.status(500).send('Error inserting user');
+            return;
+        }
+        res.status(201).json({ message: 'User added successfully', id: results.insertId });
+    });
+});
+
